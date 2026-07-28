@@ -15,8 +15,11 @@ journeys. This skill covers the transactional sending API.
 - Auth: `Authorization: Bearer $EMAILBUMP_API_KEY` (keys start with `ebk_`)
 - All requests and responses are JSON.
 
-If `EMAILBUMP_API_KEY` is not set, ask the user to create one in the Email Bump
-dashboard (Settings → API keys) and export it. Never print the key back.
+If `EMAILBUMP_API_KEY` is not set, the easiest path is the Email Bump CLI:
+`emailbump login` (browser click; scope: one project or all access). Otherwise
+ask the user to create a key in the dashboard (Developers → API Keys) and
+export it. All-access keys must add `X-Project-Id: <uuid>` on these endpoints.
+Never print the key back.
 
 ## Send an email
 

@@ -1,6 +1,6 @@
 ---
 name: emailbump-management
-description: Provision Email Bump account structure programmatically — workspaces, projects, sending domains with DNS verification, welcome flows, and project API keys. Use when setting up Email Bump for a new app, adding a sending domain, or when an agent needs to bootstrap email infrastructure end to end.
+description: Provision Email Bump account structure programmatically with an all-access key — workspaces, projects, sending domains with DNS verification, welcome flows, and project keys. Use when setting up Email Bump for a new app, adding a sending domain, or when an agent needs to bootstrap email infrastructure end to end.
 license: MIT
 ---
 
@@ -12,8 +12,11 @@ inside: workspaces → projects → domains, flows, and per-project API keys.
 ## Setup
 
 - Base URL: `https://emailbump.com/api/v1`
-- Auth: `Authorization: Bearer $EMAILBUMP_API_KEY` using an **account token**
-  (account-scoped key), not a project key. Project keys cannot provision.
+- Auth: `Authorization: Bearer $EMAILBUMP_API_KEY` using an **all-access key**
+  (created with the "all access" scope — via `emailbump login` or the dashboard).
+  Project-scoped keys cannot provision. An all-access key can also act in any
+  project its owner admins by adding an `X-Project-Id: <uuid>` header to the
+  regular project endpoints (sending, contacts, campaigns).
 
 ## Typical bootstrap flow
 
@@ -26,8 +29,8 @@ inside: workspaces → projects → domains, flows, and per-project API keys.
    if authorized), then `GET /v1/projects/{team_id}/domains/{domain_id}` to
    check/trigger verification. Poll until verified — propagation can take
    minutes to hours; don't tight-loop.
-5. `POST /v1/projects/{team_id}/api-keys` — mint a project key (`ebk_…`) for
-   application sending. Show it to the user once and tell them to store it as
+5. `POST /v1/projects/{team_id}/api-keys` — mint a project-scoped key (`ebk_…`)
+   for application sending. Show it to the user once and tell them to store it as
    a secret; it is not retrievable later.
 6. Optionally `POST /v1/projects/{team_id}/flows` — create a starter
    automation flow (e.g. a welcome series) for the project.
