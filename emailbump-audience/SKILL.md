@@ -60,7 +60,7 @@ power segments and trigger automation flows.
 curl -X POST https://emailbump.com/api/v1/events \
   -H "Authorization: Bearer $EMAILBUMP_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"email": "jane@example.com", "name": "order_completed", "properties": {"total": 4999}}'
+  -d '{"email": "jane@example.com", "event": "order_completed", "properties": {"total": 4999}}'
 ```
 
 Reference: https://emailbump.com/docs/events-api.md
