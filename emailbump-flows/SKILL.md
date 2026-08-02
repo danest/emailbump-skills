@@ -1,0 +1,111 @@
+---
+name: emailbump-flows
+description: Build automated email journeys with Email Bump — welcome series, onboarding, win-backs — from a trigger and a list of steps (send, wait, branch, tag, webhook). Use when the user wants email sent automatically in response to a signup, an event, or joining a list.
+license: MIT
+---
+
+# Email Bump — automated flows
+
+A flow is a trigger and a list of steps. Someone enters, and the steps run in
+order: send an email, wait, branch on what they did, tag them, call a webhook.
+
+## Setup
+
+- Base URL: `https://emailbump.com/api/v1`
+- Auth: `Authorization: Bearer $EMAILBUMP_API_KEY` (project key, or an
+  all-access key plus `X-Project-Id: <uuid>`).
+
+## Create a flow
+
+`POST /v1/flows`
+
+```bash
+curl -X POST https://emailbump.com/api/v1/flows \
+  -H "Authorization: Bearer $EMAILBUMP_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Welcome series",
+    "trigger": { "type": "list_joined", "list_id": "LIST_UUID" },
+    "steps": [
+      {
+        "type": "send",
+        "subject": "You are in",
+        "from_name": "Acme",
+        "from_email": "hello@mail.acme.com",
+        "html": "<p>Thanks for joining, {{ contact.first_name }}.</p>"
+      },
+      { "type": "wait", "days": 2 },
+      {
+        "type": "send",
+        "subject": "The one thing worth knowing",
+        "from_name": "Acme",
+        "from_email": "hello@mail.acme.com",
+        "html": "<p>Here it is.</p>"
+      }
+    ]
+  }'
+```
+
+A flow is created active unless you pass `"status": "draft"`. `GET /v1/flows/{id}`
+returns it with its steps; `activate` and `pause` change its state.
+
+## Always set the sender
+
+**Set `from_email` and `from_name` on every send step.** They are optional, but
+a step without them sends from the project's verified domain with no display
+name — and from Email Bump's shared domain if the project has verified nothing
+at all. Neither is what a customer wants their audience to see.
+
+- `from_email` must be on a domain verified for that project. Check with
+  `GET /v1/projects/{team_id}/domains` (all-access key) or ask the user.
+- `from_name` is what appears in the inbox. Use the brand, not "noreply".
+- Set `reply_to` when a person will actually read replies.
+
+If the domain isn't verified yet, say so and set it up first — sending from an
+unverified domain is what a spam folder is for.
+
+## Do not write your own unsubscribe
+
+Every flow email gets a CAN-SPAM footer and a one-click `List-Unsubscribe`
+header automatically: the opt-in reason, the sender's physical address, and an
+unsubscribe link tied to that contact. Don't add your own — you'll get two, and
+yours won't be wired to the suppression list.
+
+## Steps
+
+| Step | What it does |
+|---|---|
+| `send` | Sends an email. `subject` plus one of `html`, `mjml`, or `template_id`. |
+| `wait` | Holds for `seconds` / `minutes` / `hours` / `days`. |
+| `wait_until` | Holds until a time of day, e.g. `"09:30"`. |
+| `wait_event` | Holds until a tracked event arrives, or a timeout passes. |
+| `branch` | Splits the path on a condition; each leg is its own list of steps. |
+| `tag` / `untag` | Adds or removes a tag on the contact. |
+| `webhook` | POSTs to your URL. The URL must resolve to a public address. |
+| `goal` / `exit` | Ends the journey. |
+
+Steps after a `branch` aren't allowed — put them inside the legs.
+
+## Triggers
+
+`list_joined`, `segment_entered`, `event` (a tracked behavioural event),
+`contact_created`, `date` (an anniversary or a property date), and `manual`
+(enrol through the API). Full shapes: the Flows API reference below.
+
+## Enrol someone
+
+`POST /v1/flows/{id}/enroll` with `{"email": "..."}` or `{"contact_id": "..."}`
+— the way to drive a `manual` flow, and useful for testing any other.
+
+## Guardrails
+
+- A flow sends real email to real people, repeatedly, without anyone watching.
+  Show the user the steps, the timing, and the sender before activating one.
+- Create it as a draft when the user hasn't seen the content yet.
+- `pause` stops it without losing enrollments; `delete` is permanent.
+
+## Reference
+
+- Flows API: https://emailbump.com/docs/flows-api.md
+- Automated flows guide: https://emailbump.com/docs/flows.md
+- Sending domains: https://emailbump.com/docs/domains.md
