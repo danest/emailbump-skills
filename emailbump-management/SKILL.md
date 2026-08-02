@@ -61,10 +61,10 @@ projects, and domains each have their own page.
 ## Guardrails
 
 - Creating workspaces/projects may have billing implications — state what you
-  are about to create and on which account before doing it. A person can hold
-  three workspaces on the free plan; a fourth is refused until one is paid. When
-  someone wants another sending unit, a project inside an existing workspace is
-  almost always what they mean.
+  are about to create and on which account before doing it. When someone wants another
+  sending unit, ask whether they mean a project inside an existing workspace
+  (shared bill) or a separate workspace (its own bill) — the words get used
+  interchangeably and the billing consequence is different.
 - Treat minted API keys as secrets: never write them into code, logs, or chat
   history beyond the one-time handoff; put them in the user's secret store or
   environment.
