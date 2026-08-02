@@ -21,9 +21,16 @@ human step is one click and the tool waits:
 - **CLI:** tell them to run `emailbump signup`. It opens the browser; they
   choose "Create an account" and come back to the authorize page on their own.
 
-Then say this, because it's the step people miss: **a new account can read the
-API immediately but cannot send until the email address is verified.** Tell them
-to click the link in their inbox.
+Then verify the address — the step people miss. **A new account can read the API
+immediately but cannot send until the email is verified.** The verification
+email carries a link and a six-character code, so they don't have to leave the
+conversation:
+
+- **MCP:** ask them to read the code out of the email, then call
+  `verify_email_code` with their address and that code.
+- **CLI:** `emailbump verify-email --email them@company.com PL8FJD`
+
+Ask them for it. Nothing here can read their inbox, and nothing should.
 
 ## Setup
 
