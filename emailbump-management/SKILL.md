@@ -9,6 +9,22 @@ license: MIT
 Provision the account structure that the other Email Bump skills operate
 inside: workspaces → projects → domains, and per-project API keys.
 
+## If they have no account yet
+
+You can start the sign-up; you can't finish it. Someone has to agree to the
+terms and own the mailbox, so there is no headless account creation — but the
+human step is one click and the tool waits:
+
+- **MCP:** call `start_authorization`, show the person the URL and pairing code,
+  then poll `finish_authorization` every few seconds. It stores the credential
+  where the CLI keeps it, and every other tool works afterwards.
+- **CLI:** tell them to run `emailbump signup`. It opens the browser; they
+  choose "Create an account" and come back to the authorize page on their own.
+
+Then say this, because it's the step people miss: **a new account can read the
+API immediately but cannot send until the email address is verified.** Tell them
+to click the link in their inbox.
+
 ## Setup
 
 - Base URL: `https://emailbump.com/api/v1`
