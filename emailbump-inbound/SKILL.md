@@ -80,8 +80,12 @@ curl -X POST https://emailbump.com/api/v1/inbound/MESSAGE_ID/forward \
 - `text` / `html` — that note.
 
 The copy goes out from the user's own address with `Reply-To` set to whoever
-wrote it, so replies reach them. Mail Email Bump forwarded is never forwarded
-again, so rules can't loop.
+wrote it, so replies reach them.
+
+Loops are prevented in four ways, so don't build your own: copies carry a hop
+count and stop after three, an address that receives mail here is refused as a
+destination, automatic mail (out-of-office replies, bounces, mailing-list posts)
+is never forwarded, and no single address takes more than 60 forwards an hour.
 
 To forward *everything* with no code, the user sets a rule under **Inbound →
 Forwarding** in the dashboard — every message arriving is copied to an address
