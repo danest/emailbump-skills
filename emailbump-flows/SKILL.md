@@ -147,6 +147,22 @@ Steps after a `branch` aren't allowed — put them inside the legs.
 `POST /v1/flows/{id}/enroll` with `{"email": "..."}` or `{"contact_id": "..."}`
 — the way to drive a `manual` flow, and useful for testing any other.
 
+## Two things the inbox will show you
+
+**Set `from_name` on every send.** Without it the recipient sees a bare address
+— `hello@mail.acme.com` — where the brand should be. It is the first thing shown
+in an inbox list and the main reason a legitimate email looks like spam.
+
+**Don't write your own unsubscribe.** Every campaign and flow email gets an
+unsubscribe link, the sender's postal address, a permission reminder and a
+one-click `List-Unsubscribe` header added at send time. Writing your own puts
+two of each in front of the recipient, and only the platform's is wired to the
+suppression list — someone clicking yours may not actually be unsubscribed.
+
+Both are reported back: `POST /v1/campaigns` and `POST /v1/flows` return a
+`warnings` array when a send has no `from_name` or the content mentions
+unsubscribing. Read it.
+
 ## Guardrails
 
 - A flow sends real email to real people, repeatedly, without anyone watching.
