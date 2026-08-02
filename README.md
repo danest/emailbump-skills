@@ -30,7 +30,8 @@ programmatically with the `emailbump-management` skill.
 
 | Skill | What your agent learns |
 | --- | --- |
-| [`emailbump`](./emailbump/SKILL.md) | Send transactional email through the REST API — immediate and scheduled sends, templates, personalization, and rate limits. |
+| [`emailbump`](./emailbump/SKILL.md) | Send transactional email through the REST API — immediate and scheduled sends, attachments, templates, personalization, and rate limits. |
+| [`emailbump-inbound`](./emailbump-inbound/SKILL.md) | Receive email: a catch-all address per project, the `email.received` webhook, reading messages and attachments, and forwarding one on. |
 | [`emailbump-audience`](./emailbump-audience/SKILL.md) | Manage contacts, lists, segments, consent, and behavioral events. |
 | [`emailbump-campaigns`](./emailbump-campaigns/SKILL.md) | Create, A/B test, schedule, and send marketing campaigns with templates. |
 | [`emailbump-management`](./emailbump-management/SKILL.md) | Provision workspaces, projects, sending domains, flows, and project API keys. |

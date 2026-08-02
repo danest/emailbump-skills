@@ -1,13 +1,13 @@
 ---
 name: emailbump-management
-description: Provision Email Bump account structure programmatically with an all-access key — workspaces, projects, sending domains with DNS verification, welcome flows, and project keys. Use when setting up Email Bump for a new app, adding a sending domain, or when an agent needs to bootstrap email infrastructure end to end.
+description: Provision Email Bump account structure programmatically with an all-access key — workspaces, projects, sending domains with DNS verification, and project keys. Use when setting up Email Bump for a new app, adding a sending domain, or when an agent needs to bootstrap email infrastructure end to end.
 license: MIT
 ---
 
-# Email Bump — management API
+# Email Bump — account API
 
 Provision the account structure that the other Email Bump skills operate
-inside: workspaces → projects → domains, flows, and per-project API keys.
+inside: workspaces → projects → domains, and per-project API keys.
 
 ## Setup
 
@@ -32,10 +32,12 @@ inside: workspaces → projects → domains, flows, and per-project API keys.
 5. `POST /v1/projects/{team_id}/api-keys` — mint a project-scoped key (`ebk_…`)
    for application sending. Show it to the user once and tell them to store it as
    a secret; it is not retrievable later.
-6. Optionally `POST /v1/projects/{team_id}/flows` — create a starter
-   automation flow (e.g. a welcome series) for the project.
+6. Optionally `POST /v1/flows` with the new project key (or this key plus an
+   `X-Project-Id: {team_id}` header) — create a starter automation, e.g. a
+   welcome series. Flows are a project resource, not part of provisioning.
 
-Full reference: https://emailbump.com/docs/management-api.md
+Full reference: https://emailbump.com/docs/api-reference.md — workspaces,
+projects, and domains each have their own page.
 
 ## Guardrails
 
@@ -51,4 +53,7 @@ Full reference: https://emailbump.com/docs/management-api.md
 
 - API keys guide: https://emailbump.com/docs/api-keys.md
 - Sending domains guide: https://emailbump.com/docs/domains.md
-- Automated flows: https://emailbump.com/docs/flows.md
+- Workspaces API: https://emailbump.com/docs/workspaces-api.md
+- Projects API: https://emailbump.com/docs/projects-api.md
+- Domains API: https://emailbump.com/docs/domains-api.md
+- Flows API: https://emailbump.com/docs/flows-api.md

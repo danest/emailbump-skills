@@ -1,6 +1,6 @@
 ---
 name: emailbump
-description: Send transactional email through the Email Bump REST API — immediate and scheduled sends, reusable templates, Liquid personalization, and account limits. Use when the user wants to send an email, receipt, alert, or notification programmatically via Email Bump.
+description: Send transactional email through the Email Bump REST API — immediate and scheduled sends, file attachments, reusable templates, Liquid personalization, and account limits. Use when the user wants to send an email, receipt, alert, invoice, or notification programmatically via Email Bump.
 license: MIT
 ---
 
@@ -49,11 +49,33 @@ Body fields:
 - `reply_to` — optional reply address.
 - `template_id` — send a stored template instead of inline `html` (see
   Templates below). Template variables are rendered with Liquid.
+- `attachments` — files to send along (see below).
 - `scheduled_at` — RFC 3339 timestamp in the future. The response returns
   `status: "scheduled"` and Email Bump delivers it when due. Omit to send now.
 
 Personalization uses Liquid, e.g. `{{ contact.first_name }}`; contact
 attributes come from the project's contact record for the recipient.
+
+## Attachments
+
+Up to 20 files, 25 MB in total, each base64-encoded:
+
+```json
+"attachments": [
+  { "filename": "invoice-4821.pdf", "content": "JVBERi0xLjQK..." },
+  { "filename": "logo.png", "content": "iVBORw0KGgo...", "content_id": "logo" }
+]
+```
+
+- `filename` (required) — what the recipient sees when they save it.
+- `content` (required) — the bytes, base64. A whole `data:` URI is accepted too.
+- `content_type` — guessed from the filename when omitted.
+- `content_id` — set it to embed the file in the HTML rather than list it at the
+  bottom, and reference it as `<img src="cid:logo">`.
+
+A PDF invoice or a photo is normal and delivers fine. Executables, archives and
+macro-enabled documents are what spam filters look for — link to those instead of
+attaching them.
 
 ## Templates
 
