@@ -32,6 +32,39 @@ address with no way to unsubscribe.
    `GET /v1/projects/{id}/domains`. If not, add it and publish the DNS records
    first — that's its own job, not a step to rush inside this one.
 
+## The sender's postal address
+
+Anti-spam law wants a real postal address for whoever is sending, and it appears
+in the footer of every marketing email. A project that hasn't set one prints
+Email Bump's address instead — legally fine for Email Bump, wrong for the
+customer, and the sort of thing nobody notices until a recipient asks.
+
+Check it before any marketing send:
+
+```bash
+curl https://emailbump.com/api/v1/projects/PROJECT_ID \
+  -H "Authorization: Bearer $EMAILBUMP_API_KEY"
+```
+
+`email_footer.is_your_own_address: false` means it's ours. To fix it:
+
+1. **Ask the human** for the business address that should appear on their email.
+2. If they'd rather you find it: look at their website — the page footer, a
+   contact page, terms, or privacy policy usually carries it — and **show them
+   what you found and get a yes before writing it.**
+3. Then set it:
+
+```bash
+curl -X PATCH https://emailbump.com/api/v1/projects/PROJECT_ID \
+  -H "Authorization: Bearer $EMAILBUMP_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "company_name": "Acme Inc", "address_line1": "12 Bridge Street",
+        "city": "Austin", "state": "TX", "postal_code": "78701", "country": "USA" }'
+```
+
+Never invent an address, and never use one you only half-recognise. A wrong
+address in a compliance footer is worse than a missing one.
+
 ## Create a flow
 
 `POST /v1/flows`
