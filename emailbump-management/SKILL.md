@@ -36,13 +36,35 @@ inside: workspaces → projects → domains, and per-project API keys.
    `X-Project-Id: {team_id}` header) — create a starter automation, e.g. a
    welcome series. Flows are a project resource, not part of provisioning.
 
+7. `PATCH /v1/projects/{team_id}` — set the project's company name and postal
+   address. Do this as part of provisioning, not later: without an address every
+   marketing email that project sends prints Email Bump's address as the
+   sender's own. `GET /v1/projects/{team_id}` shows what the footer will say
+   under `email_footer`, including `is_your_own_address`.
+
+Reading the account: `GET /v1/workspaces` returns workspaces with the projects
+inside them; `GET /v1/projects` returns projects flat with the workspace each
+belongs to; `GET /v1/projects/{team_id}/domains` lists a project's sending
+domains with their verification state — check it before setting any From
+address, because mail from an unverified domain doesn't land. Every object carries `"object": "workspace"` or `"object": "project"`
+— a workspace and its first project share a name by default, so the name alone
+doesn't say which one you're holding.
+
+Removing a project: `DELETE /v1/projects/{team_id}` with `{"confirm_name": "..."}`
+matching its name exactly. It takes the contacts, campaigns, flows, domains,
+keys and received mail with it, and the workspace too if it was the last project
+in it. Confirm with the human first — there is no undo.
+
 Full reference: https://emailbump.com/docs/api-reference.md — workspaces,
 projects, and domains each have their own page.
 
 ## Guardrails
 
 - Creating workspaces/projects may have billing implications — state what you
-  are about to create and on which account before doing it.
+  are about to create and on which account before doing it. A person can hold
+  three workspaces on the free plan; a fourth is refused until one is paid. When
+  someone wants another sending unit, a project inside an existing workspace is
+  almost always what they mean.
 - Treat minted API keys as secrets: never write them into code, logs, or chat
   history beyond the one-time handoff; put them in the user's secret store or
   environment.

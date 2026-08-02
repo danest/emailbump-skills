@@ -15,6 +15,23 @@ order: send an email, wait, branch on what they did, tag them, call a webhook.
 - Auth: `Authorization: Bearer $EMAILBUMP_API_KEY` (project key, or an
   all-access key plus `X-Project-Id: <uuid>`).
 
+## Check these first
+
+One request each. Skipping them is how a welcome series goes out from the wrong
+address with no way to unsubscribe.
+
+1. **Which project?** `GET /v1/projects` lists them flat with the workspace each
+   belongs to. A workspace and its first project share a name by default — read
+   the `object` field rather than guessing from the name.
+2. **Does the project have a real postal address?** `GET /v1/projects/{id}`
+   returns `email_footer`. If `is_your_own_address` is `false`, every email
+   prints Email Bump's address as the sender's. Set theirs with
+   `PATCH /v1/projects/{id}` (`company_name`, `address_line1`, `city`, `state`,
+   `postal_code`, `country`) before sending.
+3. **Is there a verified sending domain?**
+   `GET /v1/projects/{id}/domains`. If not, add it and publish the DNS records
+   first — that's its own job, not a step to rush inside this one.
+
 ## Create a flow
 
 `POST /v1/flows`
