@@ -79,7 +79,7 @@ curl -X POST https://emailbump.com/api/v1/flows \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Welcome series",
-    "trigger": { "type": "list_joined", "list_id": "LIST_UUID" },
+    "trigger": { "type": "list_join", "list_id": "LIST_UUID" },
     "steps": [
       {
         "type": "send",
@@ -143,9 +143,14 @@ Steps after a `branch` aren't allowed — put them inside the legs.
 
 ## Triggers
 
-`list_joined`, `segment_entered`, `event` (a tracked behavioural event),
-`contact_created`, `date` (an anniversary or a property date), and `manual`
-(enrol through the API). Full shapes: the Flows API reference below.
+`list_join` (`list_id`, or omit it to catch every list), `segment_enter`
+(`segment_id`), `event` (a tracked behavioural event), `email_event`,
+`contact_created`, `date_based` (`attribute`, `offset_days`), and `manual`
+(enrol through the API).
+
+These names are exact. `list_joined` and `segment_entered` are refused with a
+400 that lists the valid ones — read it rather than guessing again. Full shapes:
+the Flows API reference below.
 
 ## Enrol someone
 
