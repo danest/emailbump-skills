@@ -18,7 +18,10 @@ order: send an email, wait, branch on what they did, tag them, call a webhook.
 ## Check these first
 
 One request each. Skipping them is how a welcome series goes out from the wrong
-address with no way to unsubscribe.
+address with no way to unsubscribe. `GET /v1/me` answers all three at once —
+project, sender readiness, and whether the footer carries the customer's own
+postal address — so start there and use the longer forms below to fix whatever
+it reports.
 
 1. **Which project?** `GET /v1/projects` lists them flat with the workspace each
    belongs to. A workspace and its first project share a name by default — read
@@ -28,9 +31,10 @@ address with no way to unsubscribe.
    prints Email Bump's address as the sender's. Set theirs with
    `PATCH /v1/projects/{id}` (`company_name`, `address_line1`, `city`, `state`,
    `postal_code`, `country`) before sending.
-3. **Is there a verified sending domain?**
-   `GET /v1/projects/{id}/domains`. If not, add it and publish the DNS records
-   first — that's its own job, not a step to rush inside this one.
+3. **Is there a verified sending domain?** `GET /v1/domains` with a project
+   key, or `GET /v1/projects/{id}/domains` with an all-access key. If not, add
+   it (`POST /v1/domains`) and publish the DNS records first — that's its own
+   job, not a step to rush inside this one.
 
 ## The sender's postal address
 
@@ -107,7 +111,8 @@ name — and from Email Bump's shared domain if the project has verified nothing
 at all. Neither is what a customer wants their audience to see.
 
 - `from_email` must be on a domain verified for that project. Check with
-  `GET /v1/projects/{team_id}/domains` (all-access key) or ask the user.
+  `GET /v1/domains` (project key) or `GET /v1/projects/{team_id}/domains`
+  (all-access key).
 - `from_name` is what appears in the inbox. Use the brand, not "noreply".
 - Set `reply_to` when a person will actually read replies.
 

@@ -26,6 +26,25 @@ export EMAILBUMP_API_KEY="ebk_..."
 Create keys in the dashboard under **Settings → API keys**, or provision them
 programmatically with the `emailbump-management` skill.
 
+**No account yet?** Your agent can make one — an email address, no password, no
+browser:
+
+```bash
+curl -X POST https://emailbump.com/api/v1/signup \
+  -H "Content-Type: application/json" \
+  -d '{ "email": "you@company.com", "accept_terms": true }'
+```
+
+It returns a project key for sending and an account key for provisioning. The
+account can't send until you enter the six-character code we email — which is
+the point: an agent can do the setup, but a person still proves the mailbox.
+`emailbump-management` covers the whole flow.
+
+Whatever the key, `GET /v1/me` is the first call worth making: it says which
+project the key is in, whether the address is confirmed, which sending domains
+are verified, and whether the compliance footer carries your postal address or
+our placeholder.
+
 ## Skills
 
 | Skill | What your agent learns |

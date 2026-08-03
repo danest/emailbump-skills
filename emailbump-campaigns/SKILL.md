@@ -13,6 +13,25 @@ Marketing sends to lists and segments, with A/B testing built in.
 - Base URL: `https://emailbump.com/api/v1`
 - Auth: `Authorization: Bearer $EMAILBUMP_API_KEY` (keys start with `ebk_`)
 
+## Check before you send: `GET /v1/me`
+
+One call, and it answers everything that can spoil a campaign:
+
+```bash
+curl https://emailbump.com/api/v1/me -H "Authorization: Bearer $EMAILBUMP_API_KEY"
+```
+
+- `sending.email_confirmed: false` — the account holder never entered the code
+  we emailed. Nothing sends at all until they do.
+- `sending.verified_domains: []` — mail goes from the shared domain, which is
+  the wrong return address on a marketing send. Add theirs: `POST /v1/domains`.
+- `footer.is_your_own_address: false` — the postal address printed in the
+  footer is **Email Bump's**, not the customer's. Legal for us, wrong for them,
+  and nobody notices until a recipient asks. Fix it before sending.
+
+A campaign goes to a whole audience at once and cannot be recalled. Reading this
+first costs one request; getting it wrong costs the customer's reputation.
+
 ## Create a campaign (draft)
 
 `POST /v1/campaigns`
