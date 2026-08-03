@@ -16,9 +16,11 @@ Contacts, lists, segments, consent, and events for an Email Bump project.
 ## Contacts
 
 - `GET /v1/contacts` — list; supports `limit`, `offset`, `status`, `search`.
-- `POST /v1/contacts` — create a contact (email + attributes).
+- `POST /v1/contacts` — create **or update**: an email you already have is
+  updated, not rejected. `201` for a new contact, `200` for an existing one, and
+  the response's `created` says which.
 - `GET /v1/contacts/{id}` — fetch one.
-- `PATCH /v1/contacts/{id}` — update attributes.
+- `PATCH /v1/contacts/{id}` — change only the fields you send.
 - `DELETE /v1/contacts/{id}` — remove entirely (destructive — confirm first).
 - `POST /v1/contacts/{id}/subscribe` / `POST /v1/contacts/{id}/unsubscribe` —
   change marketing consent.
@@ -29,6 +31,24 @@ curl -X POST https://emailbump.com/api/v1/contacts \
   -H "Content-Type: application/json" \
   -d '{"email": "jane@example.com", "first_name": "Jane", "attributes": {"plan": "pro"}}'
 ```
+
+### Attributes merge — but know what you're writing
+
+Keys you send are added or overwritten; keys already on the contact that you
+don't mention are kept. To remove one, send it as `null`.
+
+That matters because attributes are often a **record of something**: when
+someone entered a giveaway, that they accepted the rules, which form they came
+from. You will frequently be updating a contact for an unrelated reason —
+setting a plan, tagging a source — with no idea those fields exist. They stay.
+
+Two habits worth keeping anyway:
+
+- **Read before you write** when you're about to overwrite a key you didn't
+  set. `GET /v1/contacts/{id}` costs one call and tells you what's there.
+- **Don't invent timestamps.** If a contact already has `signed_up_at` or
+  similar, leave it. Re-stamping the moment you happened to run destroys the
+  answer to "when did this actually happen".
 
 Full field reference: https://emailbump.com/docs/contacts-api.md
 

@@ -70,6 +70,19 @@ A password is never required. If they want to sign in to the dashboard later,
    if authorized), then `GET /v1/projects/{team_id}/domains/{domain_id}` to
    check/trigger verification (project key: `GET /v1/domains/{domain_id}`). Poll
    until verified — propagation can take minutes to hours; don't tight-loop.
+4b. Optional, and worth offering: `POST /v1/domains/{domain_id}/tracking` turns
+   on branded link tracking, so links in their mail read
+   `links.theirdomain.com` instead of Email Bump's shared tracking domain.
+   Until it's on, clicks are still tracked and nothing is broken — a recipient
+   hovering a link just sees our domain rather than theirs.
+
+   It provisions in two steps and **`dns_records` only ever contains the record
+   that exists yet**, so don't tell the user "publish the records" and hand them
+   an empty list. Publish the one with `purpose: "Link tracking"` and
+   `step: "certificate"`, poll `GET /v1/domains/{domain_id}` (that call is what
+   advances provisioning), then publish the `step: "routing"` record that
+   appears once the certificate validates. Tens of minutes end to end — much
+   slower than domain verification. `DELETE` on the same path turns it off.
 5. `POST /v1/projects/{team_id}/api-keys` — mint a project-scoped key (`ebk_…`)
    for application sending. Show it to the user once and tell them to store it as
    a secret; it is not retrievable later.
