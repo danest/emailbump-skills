@@ -11,26 +11,36 @@ inside: workspaces → projects → domains, and per-project API keys.
 
 ## If they have no account yet
 
-You can start the sign-up; you can't finish it. Someone has to agree to the
-terms and own the mailbox, so there is no headless account creation — but the
-human step is one click and the tool waits:
+Make one from here. It takes an email address and nothing else — no password, no
+browser:
 
-- **MCP:** call `start_authorization`, show the person the URL and pairing code,
-  then poll `finish_authorization` every few seconds. It stores the credential
-  where the CLI keeps it, and every other tool works afterwards.
-- **CLI:** tell them to run `emailbump signup`. It opens the browser; they
-  choose "Create an account" and come back to the authorize page on their own.
+```bash
+curl -X POST https://emailbump.com/api/v1/signup \
+  -H "Content-Type: application/json" \
+  -d '{ "email": "them@company.com", "name": "Dana", "accept_terms": true }'
+```
 
-Then verify the address — the step people miss. **A new account can read the API
-immediately but cannot send until the email is verified.** The verification
-email carries a link and a six-character code, so they don't have to leave the
-conversation:
+That returns a project API key you can use immediately. Over MCP it's
+`create_account`; over the CLI, `emailbump signup --email … --accept-terms`.
 
-- **MCP:** ask them to read the code out of the email, then call
-  `verify_email_code` with their address and that code.
+Two things are theirs to give, not yours:
+
+1. **The address.** Ask for it. Never guess it from a domain or a git config.
+2. **`accept_terms`.** Creating an account means agreeing to the terms at
+   https://emailbump.com/terms. Ask them, in words, and only send `true` if they
+   said yes.
+
+Then verify the address — the account can read the API immediately but **cannot
+send a single message until it's verified**. The email carries a six-character
+code:
+
+- **MCP:** ask them to read the code out, then `verify_email_code`.
 - **CLI:** `emailbump verify-email --email them@company.com PL8FJD`
 
-Ask them for it. Nothing here can read their inbox, and nothing should.
+Nothing here can read their inbox, and nothing should. They read it out.
+
+A password is never required. If they want to sign in to the dashboard later,
+"Forgot password" sets one on an account that never had one.
 
 ## Setup
 
