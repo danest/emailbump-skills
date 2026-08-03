@@ -142,6 +142,30 @@ Both are reported back: `POST /v1/campaigns` and `POST /v1/flows` return a
 `warnings` array when a send has no `from_name` or the content mentions
 unsubscribing. Read it.
 
+## Links get rewritten, and whose domain they show
+
+Every link in a campaign is rewritten so clicks can be recorded. By default they
+go through Email Bump's shared tracking domain, which works and is invisible to
+most recipients — but someone hovering a link sees our domain, not the
+customer's.
+
+If that matters to them, branded link tracking sends links through
+`links.theirdomain.com` instead:
+
+```bash
+curl -X POST https://emailbump.com/api/v1/domains/DOMAIN_ID/tracking \
+  -H "Authorization: Bearer $EMAILBUMP_API_KEY"
+```
+
+It provisions in two steps, and `dns_records` only ever holds the record that
+exists yet — publish the `step: "certificate"` one, poll
+`GET /v1/domains/{id}`, then publish the `step: "routing"` one that appears
+after it validates. Tens of minutes. Links keep working through the shared
+domain the whole time, so it is safe to start and leave.
+
+Do not tell a customer their links are unbranded as though it were a fault — it
+is the default, it tracks correctly, and turning it on is optional.
+
 ## Guardrails — always human in the loop
 
 - **Never call `/send` on a real audience without explicit confirmation.**
