@@ -135,9 +135,18 @@ yours won't be wired to the suppression list.
 | `wait_until` | Holds until a time of day, e.g. `"09:30"`. |
 | `wait_event` | Holds until a tracked event arrives, or a timeout passes. |
 | `branch` | Splits the path on a condition; each leg is its own list of steps. |
-| `tag` / `untag` | Adds or removes a tag on the contact. |
-| `webhook` | POSTs to your URL. The URL must resolve to a public address. |
-| `goal` / `exit` | Ends the journey. |
+| `split` | Random split for A/B: `branches`, each `{ key, weight?, steps }`. Needs at least two. |
+| `add_list` / `remove_list` | `list_id`. Puts the contact on a list, or takes them off it. |
+| `set_attribute` | `key`, `value`. Writes a contact attribute — the field is `key`, not `attribute`. |
+| `notify` | `headline`, optional `message`. Emails your own team, not the contact. |
+| `webhook` | `url`, optional `method`. The URL must resolve to a public address. |
+| `exit` | Ends the journey. |
+
+That is the whole list, and the names are exact. There is no `tag`, `untag` or
+`goal` step — use `add_list`/`remove_list` to group people and `exit` to end a
+journey. Anything else comes back as
+`unknown variant \`x\`, expected one of ...`, which names the valid set; read it
+rather than guessing again.
 
 Steps after a `branch` aren't allowed — put them inside the legs.
 
