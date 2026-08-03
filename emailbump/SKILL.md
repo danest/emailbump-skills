@@ -15,11 +15,43 @@ journeys. This skill covers the transactional sending API.
 - Auth: `Authorization: Bearer $EMAILBUMP_API_KEY` (keys start with `ebk_`)
 - All requests and responses are JSON.
 
-If `EMAILBUMP_API_KEY` is not set, the easiest path is the Email Bump CLI:
-`emailbump login` (browser click; scope: one project or all access). Otherwise
-ask the user to create a key in the dashboard (Developers → API Keys) and
-export it. All-access keys must add `X-Project-Id: <uuid>` on these endpoints.
-Never print the key back.
+If `EMAILBUMP_API_KEY` is not set: ask the user for a key from the dashboard
+(Developers → API Keys), or `emailbump login` for the browser flow. If they have
+no account at all, you can make one from here — see
+[emailbump-management](../emailbump-management/SKILL.md). All-access keys must
+add `X-Project-Id: <uuid>` on these endpoints. Never print the key back.
+
+## First call: `GET /v1/me`
+
+Before the first send, ask what the key can actually do. Four separate things
+refuse a send, and this names all of them at once:
+
+```bash
+curl https://emailbump.com/api/v1/me -H "Authorization: Bearer $EMAILBUMP_API_KEY"
+```
+
+```json
+{
+  "project": { "name": "Main", "object": "project" },
+  "sending": {
+    "ready": true,
+    "email_confirmed": true,
+    "verified_domains": ["mail.acme.com"],
+    "default_from": "hello@mail.acme.com"
+  },
+  "footer": { "address": "12 Bridge Street, Austin TX", "is_your_own_address": true }
+}
+```
+
+- `sending.email_confirmed: false` — the account holder hasn't entered the code
+  we emailed. Nothing sends until they do.
+- `verified_domains: []` — mail goes from the shared domain and looks like it.
+  Add theirs with `POST /v1/domains`.
+- `footer.is_your_own_address: false` — the legally-required postal address in
+  the footer is *Email Bump's*, not the customer's. Fix before marketing sends.
+
+Do not discover any of this by sending and reading the error. `GET /v1` lists
+the whole API and needs no key at all.
 
 ## Send an email
 
@@ -42,7 +74,9 @@ Body fields:
 
 - `from` (required) — display name + address. The domain must be a verified
   sending domain on the project.
-- `to` (required) — a single recipient address.
+- `to` (required) — a single recipient address. One message, one recipient:
+  each send is metered and tracked on its own, so five people is five calls
+  (or a campaign). A one-element array is accepted; more than one is a 400.
 - `subject` — required unless a template supplies it.
 - `html` / `text` — body content. Provide both when possible; `text` improves
   deliverability and accessibility.
@@ -55,6 +89,28 @@ Body fields:
 
 Personalization uses Liquid, e.g. `{{ contact.first_name }}`; contact
 attributes come from the project's contact record for the recipient.
+
+## Did it arrive?
+
+`POST /v1/emails` returns an id; `GET /v1/emails/{id}` says what became of it.
+
+```bash
+curl https://emailbump.com/api/v1/emails/$EMAIL_ID \
+  -H "Authorization: Bearer $EMAILBUMP_API_KEY"
+```
+
+`status: "sent"` means accepted for delivery, **not** delivered. The `events`
+array is the truth — `delivery`, `open`, `click`, `bounce`, `complaint`. Mail to
+a domain with no MX record reports `sent` and then bounces seconds later, so
+when a user says "it never arrived", read the events before believing `status`.
+
+## Fields we ignore, and say so
+
+A field this endpoint doesn't read is ignored, and the response carries a
+`warnings` array naming it. `from_name` is the common one: it's real on
+campaigns and flows, but here the display name goes inside `from`
+(`"Acme <hi@acme.com>"`). Read `warnings` — it is how a silent no-op announces
+itself.
 
 ## Attachments
 

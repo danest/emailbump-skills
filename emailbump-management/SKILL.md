@@ -20,7 +20,9 @@ curl -X POST https://emailbump.com/api/v1/signup \
   -d '{ "email": "them@company.com", "name": "Dana", "accept_terms": true }'
 ```
 
-That returns a project API key you can use immediately. Over MCP it's
+That returns **two** keys: `api_key`, scoped to the new project, for sending;
+and `account_key`, for creating further workspaces, projects and keys. Between
+them there is nothing in provisioning that needs a browser. Over MCP it's
 `create_account`; over the CLI, `emailbump signup --email … --accept-terms`.
 
 Two things are theirs to give, not yours:
@@ -45,11 +47,16 @@ A password is never required. If they want to sign in to the dashboard later,
 ## Setup
 
 - Base URL: `https://emailbump.com/api/v1`
-- Auth: `Authorization: Bearer $EMAILBUMP_API_KEY` using an **all-access key**
-  (created with the "all access" scope — via `emailbump login` or the dashboard).
-  Project-scoped keys cannot provision. An all-access key can also act in any
-  project its owner admins by adding an `X-Project-Id: <uuid>` header to the
-  regular project endpoints (sending, contacts, campaigns).
+- Auth: `Authorization: Bearer $EMAILBUMP_API_KEY` using an **all-access key** —
+  from `POST /v1/signup`, `emailbump login`, or the dashboard. An all-access key
+  can also act in any project its owner admins by adding an
+  `X-Project-Id: <uuid>` header to the regular project endpoints.
+- A **project key** can't create workspaces or projects, but it *can* set up its
+  own project's sending: `GET/POST /v1/domains` and `GET /v1/domains/{id}`. If
+  all you're doing is getting one project sending from its own domain, you don't
+  need the account key at all.
+- `GET /v1/me` says which project a key is in and what it can do; `GET /v1`
+  lists the API and needs no key.
 
 ## Typical bootstrap flow
 
@@ -57,11 +64,12 @@ A password is never required. If they want to sign in to the dashboard later,
    create one.
 2. `POST /v1/projects` — create a project inside a workspace.
 3. `POST /v1/projects/{team_id}/domains` — add a sending domain. The response
-   includes the DNS records (SPF/DKIM) to publish.
+   includes the DNS records (SPF/DKIM) to publish. (With a project key:
+   `POST /v1/domains`, same body, no project id needed.)
 4. Publish the DNS records (with the user, or via their DNS provider's tooling
    if authorized), then `GET /v1/projects/{team_id}/domains/{domain_id}` to
-   check/trigger verification. Poll until verified — propagation can take
-   minutes to hours; don't tight-loop.
+   check/trigger verification (project key: `GET /v1/domains/{domain_id}`). Poll
+   until verified — propagation can take minutes to hours; don't tight-loop.
 5. `POST /v1/projects/{team_id}/api-keys` — mint a project-scoped key (`ebk_…`)
    for application sending. Show it to the user once and tell them to store it as
    a secret; it is not retrievable later.
