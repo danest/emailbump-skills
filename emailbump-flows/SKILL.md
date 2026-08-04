@@ -211,7 +211,11 @@ is the default, it tracks correctly, and turning it on is optional.
 - A flow sends real email to real people, repeatedly, without anyone watching.
   Show the user the steps, the timing, and the sender before activating one.
 - Create it as a draft when the user hasn't seen the content yet.
-- `pause` stops it without losing enrollments; `delete` is permanent.
+- `pause` stops it without losing enrollments. `delete` only works on a flow
+  nobody has ever been through — once a single contact has been enrolled it
+  returns `409` and stays for good, because the emails it sent would otherwise
+  be left in the reports with nothing to attribute them to. For a live flow,
+  pause is the answer; don't offer deletion as a way to stop one.
 
 ## Reference
 

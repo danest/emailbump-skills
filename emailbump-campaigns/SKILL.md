@@ -65,13 +65,17 @@ Key fields:
 Manage drafts with `GET /v1/campaigns` (filter by `status`: draft | scheduled |
 sending | sent | paused), `GET /v1/campaigns/{id}`, `PATCH /v1/campaigns/{id}`.
 
-`DELETE /v1/campaigns/{id}` removes one, with its recipient rows, its A/B
-variants and its report — for a sent campaign that report is the only account of
-what went out, so confirm with the user first. The raw delivery events survive in
-Activity but can no longer be attributed to the campaign. It returns **409 while the campaign is `sending`,
-`scheduled` or `testing`**: deleting a live campaign would call off a send
-without saying so. Stop it first (pause, or cancel for an A/B test in flight),
-then delete. `draft`, `paused`, `canceled` and `sent` delete straight away.
+`DELETE /v1/campaigns/{id}` removes a campaign **that never sent**, with its
+recipient rows and A/B variants. It is for clearing out drafts and mistakes.
+
+Two refusals, both `409`:
+
+- **Still going out** (`sending`, `scheduled`, `testing`) — deleting would call
+  off a send without saying so. Pause it, or cancel an A/B test in flight, then
+  delete.
+- **Already sent** — permanent. Its opens, clicks and bounces would stay in the
+  reports with nothing to attribute them to. Nobody can delete a sent campaign;
+  don't offer the user a way.
 
 ## Send or schedule
 
