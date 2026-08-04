@@ -43,6 +43,27 @@ attachment list without the bytes. Fetch the body from the API when you need it.
 Messages are stored *before* the webhook fires, so nothing is lost if the
 endpoint was down, and deliveries can be replayed.
 
+## Be told the moment mail arrives
+
+Two routes, both on at once.
+
+**A socket**, when the agent is already running and there is no URL to host:
+
+```
+GET wss://emailbump.com/api/v1/inbound/stream
+Authorization: Bearer $EMAILBUMP_API_KEY
+```
+
+One frame per message: `{ "type": "email.received", "email": { id, from, to, subject, received_at, attachment_count } }`. It is a summary — fetch the body with `GET /v1/inbound/{id}` when it matters. `to` tells you which of your addresses it came in on, which is how an agent using an address per task knows the message is its own.
+
+The key goes in the `Authorization` header and is checked before the upgrade, so browsers can't connect. That is deliberate: a key in a query string ends up in access logs.
+
+A `{ "type": "lagged", "missed": N }` frame means the connection fell behind and messages were dropped — list the inbox to catch up rather than assuming nothing arrived.
+
+From a shell: `emailbump inbound:stream` prints one JSON object per line.
+
+**A webhook**, when a backend reacts rather than a long-running agent — `email.received`, with the body and attachment list included.
+
 ## Read a message
 
 - `GET /v1/inbound` — newest first; `search`, `limit`, `offset`.
