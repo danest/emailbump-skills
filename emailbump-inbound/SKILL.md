@@ -61,6 +61,36 @@ dropped before it ever reaches you. Spam arrives flagged — skip `spam: "FAIL"`
 unless the user asked to see it. Failed SPF or DMARC usually means a forwarded
 message, not a forged one.
 
+## Reply to a message
+
+`POST /v1/inbound/{id}/reply` — answers whoever wrote in, **inside the thread
+they already have open**. This is the one you want when working a mailbox;
+forwarding is for sending the message to somebody else.
+
+```bash
+curl -X POST https://emailbump.com/api/v1/inbound/MESSAGE_ID/reply \
+  -H "Authorization: Bearer $EMAILBUMP_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "text": "Sorry about that — it ships tomorrow." }'
+```
+
+- `text` / `html` — the reply; at least one.
+- `from` — one of your sending addresses. Defaults to the shared sender.
+- `reply_all` — off by default. Answering a question should reach the person who
+  asked it, not everyone they copied.
+- `subject` — optional; by default the original's with `Re:` added once.
+
+`In-Reply-To`, `References` and the `Re:` prefix are set for you, which is what
+makes it land in the same conversation rather than beside it.
+
+It does **not** come from the address it arrived on — inbound domains aren't
+verified for sending, so that would fail SPF and DKIM. It goes out from a
+sending address you own with `Reply-To` set to the receiving address, so their
+next message comes back to the same mailbox.
+
+Show the human what you are about to write before you send it. A reply cannot be
+recalled, and it goes to a real person who is waiting for an answer.
+
 ## Forward a message
 
 `POST /v1/inbound/{id}/forward`
