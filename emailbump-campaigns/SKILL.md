@@ -65,6 +65,14 @@ Key fields:
 Manage drafts with `GET /v1/campaigns` (filter by `status`: draft | scheduled |
 sending | sent | paused), `GET /v1/campaigns/{id}`, `PATCH /v1/campaigns/{id}`.
 
+`DELETE /v1/campaigns/{id}` removes one, with its recipient rows, its A/B
+variants and its report — for a sent campaign that report is the only account of
+what went out, so confirm with the user first. The raw delivery events survive in
+Activity but can no longer be attributed to the campaign. It returns **409 while the campaign is `sending`,
+`scheduled` or `testing`**: deleting a live campaign would call off a send
+without saying so. Stop it first (pause, or cancel for an A/B test in flight),
+then delete. `draft`, `paused`, `canceled` and `sent` delete straight away.
+
 ## Send or schedule
 
 `POST /v1/campaigns/{id}/send` — empty body sends **immediately**. Optional
@@ -175,6 +183,8 @@ is the default, it tracks correctly, and turning it on is optional.
   the user's own contact, send that, and let them review the rendered email.
 - Sent campaigns cannot be recalled. Scheduled campaigns can still be edited
   or paused before their send time.
+- Deleting is not a way to stop a send — the API refuses it for exactly that
+  reason. To call one off, pause or cancel it; delete only tidies up afterwards.
 
 ## Related
 
