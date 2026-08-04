@@ -15,10 +15,14 @@ Contacts, lists, segments, consent, and events for an Email Bump project.
 
 ## Contacts
 
-- `GET /v1/contacts` — list; supports `limit`, `offset`, `status`, `search`.
+- `GET /v1/contacts` — list; supports `limit`, `offset`, `status`, `search`,
+  and `email` (exact-match lookup: one contact or an empty set — URL-encode
+  the address, a literal `+` in a query string decodes as a space).
 - `POST /v1/contacts` — create **or update**: an email you already have is
   updated, not rejected. `201` for a new contact, `200` for an existing one, and
-  the response's `created` says which.
+  the response's `created` says which. To add to lists in the same call the
+  field is `list_ids` (an array); unknown fields like `list_id` or `tags` are
+  a 400 naming the valid ones.
 - `GET /v1/contacts/{id}` — fetch one.
 - `PATCH /v1/contacts/{id}` — change only the fields you send.
 - `DELETE /v1/contacts/{id}` — remove entirely (destructive — confirm first).

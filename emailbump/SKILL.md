@@ -86,6 +86,14 @@ Body fields:
 - `attachments` — files to send along (see below).
 - `scheduled_at` — RFC 3339 timestamp in the future. The response returns
   `status: "scheduled"` and Email Bump delivers it when due. Omit to send now.
+- `stream` — `transactional` (default) or `marketing`. A marketing send is a
+  promotional one-off: it is **refused if the recipient has unsubscribed**, the
+  unsubscribe footer and one-click headers are added server-side, and it is
+  classified under the marketing stream in analytics. A recipient who isn't a
+  contact yet is created as one. `scheduled_at` isn't supported with
+  `marketing` — schedule promotional mail with a campaign. Never use the
+  default transactional stream for promotional content just to skip the
+  consent check.
 
 Personalization uses Liquid, e.g. `{{ contact.first_name }}`; contact
 attributes come from the project's contact record for the recipient.

@@ -103,6 +103,16 @@ curl -X POST https://emailbump.com/api/v1/flows \
 A flow is created active unless you pass `"status": "draft"`. `GET /v1/flows/{id}`
 returns it with its steps; `activate` and `pause` change its state.
 
+## Test before you activate
+
+`POST /v1/flows/{id}/test` with `{"to": "you@example.com"}` mails each of the
+flow's `send` steps to that address — on a **draft**, enrolling nobody. It
+renders through the real pipeline (Liquid, preview text, unsubscribe footer),
+so what arrives is what a subscriber would get; subjects are prefixed `[Test]`.
+Pass `contact_email` to render as an existing contact instead of a blank sample.
+The safe sequence: create as draft → test to the user's own address → they
+approve → `activate`.
+
 ## Always set the sender
 
 **Set `from_email` and `from_name` on every send step.** They are optional, but
@@ -130,7 +140,7 @@ yours won't be wired to the suppression list.
 
 | Step | What it does |
 |---|---|
-| `send` | Sends an email. `subject` plus one of `html`, `mjml`, or `template_id`. |
+| `send` | Sends an email. `subject` plus one of `html`, `mjml`, or `template_id`. Optional `text` supplies the text/plain part (one is generated from the HTML otherwise). |
 | `wait` | Holds for `seconds` / `minutes` / `hours` / `days`. |
 | `wait_until` | Holds until a time of day, e.g. `"09:30"`. |
 | `wait_event` | Holds until a tracked event arrives, or a timeout passes. |
@@ -144,9 +154,10 @@ yours won't be wired to the suppression list.
 
 That is the whole list, and the names are exact. There is no `tag`, `untag` or
 `goal` step — use `add_list`/`remove_list` to group people and `exit` to end a
-journey. Anything else comes back as
-`unknown variant \`x\`, expected one of ...`, which names the valid set; read it
-rather than guessing again.
+journey. An unknown step type comes back as
+`Unknown step type "x" — use one of: ...`, and an unknown *field* on a step is
+also a 400 naming the valid fields (a typo'd `preheader` suggests
+`preview_text`). Read the error rather than guessing again.
 
 Steps after a `branch` aren't allowed — put them inside the legs.
 
@@ -164,7 +175,8 @@ the Flows API reference below.
 ## Enrol someone
 
 `POST /v1/flows/{id}/enroll` with `{"email": "..."}` or `{"contact_id": "..."}`
-— the way to drive a `manual` flow, and useful for testing any other.
+— the way to drive a `manual` flow. To preview a flow's emails, prefer
+`POST /v1/flows/{id}/test`: it works on drafts and enrols nobody.
 
 ## Two things the inbox will show you
 
