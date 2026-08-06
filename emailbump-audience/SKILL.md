@@ -22,7 +22,8 @@ Contacts, lists, segments, consent, and events for an Email Bump project.
   updated, not rejected. `201` for a new contact, `200` for an existing one, and
   the response's `created` says which. To add to lists in the same call the
   field is `list_ids` (an array); unknown fields like `list_id` or `tags` are
-  a 400 naming the valid ones.
+  a 400 naming the valid ones. `subscribed` (boolean, defaults to `true`) sets
+  marketing consent — see below.
 - `GET /v1/contacts/{id}` — fetch one.
 - `PATCH /v1/contacts/{id}` — change only the fields you send.
 - `DELETE /v1/contacts/{id}` — remove entirely (destructive — confirm first).
@@ -35,6 +36,28 @@ curl -X POST https://emailbump.com/api/v1/contacts \
   -H "Content-Type: application/json" \
   -d '{"email": "jane@example.com", "first_name": "Jane", "attributes": {"plan": "pro"}}'
 ```
+
+### Consent: say nothing unless you mean something
+
+`subscribed` defaults to `true`, so a plain create adds someone to marketing.
+
+Send `subscribed: false` when the person did **not** opt in — they signed up
+for an account, bought something, or filled in a form without ticking the
+marketing box. They get a contact record and transactional mail (receipts,
+password resets) and no marketing. This is the honest way to record a customer
+who never agreed to be marketed to, and it is one call rather than creating
+them and then unsubscribing them.
+
+**Omitting the field is not the same as sending `false`.** On an address that
+already exists, leaving `subscribed` out preserves whatever consent is already
+there. That is deliberate: a second form submission from someone who
+unsubscribed last month must not quietly opt them back in, and a routine
+"update this contact's company" must not quietly opt them *out*.
+
+So: only send `subscribed` when you are recording an actual decision the person
+made. If you are updating a contact for an unrelated reason, leave it out. Do
+not send `subscribed: true` to "make sure" — that is re-subscribing someone,
+and the guardrail below applies.
 
 ### Attributes merge — but know what you're writing
 
@@ -93,7 +116,12 @@ Reference: https://emailbump.com/docs/events-api.md
 
 - Never re-subscribe a contact who unsubscribed unless the user confirms the
   contact gave fresh consent — this is a legal (CAN-SPAM/GDPR) matter, not a
-  data fix.
+  data fix. That includes `subscribed: true` on a `POST /v1/contacts` upsert,
+  which is a re-subscribe by another name.
+- Unsubscribed is not suppressed. An unsubscribed contact still receives
+  transactional email; consent gates the marketing stream only. Don't refuse to
+  send someone a receipt because they opted out of marketing, and don't treat a
+  bounce or complaint (`email_status`) as if it were an unsubscribe.
 - `DELETE` on contacts and lists is irreversible; state what will be deleted
   and get confirmation.
 - When importing many contacts, verify with the user that the list is
