@@ -88,7 +88,10 @@ Body fields:
   A copy to an address already hard-bounced or marked spam is dropped, named
   in `warnings`, and left out of the `Cc` header; the message still goes to
   `to`. Not accepted with `stream: "marketing"` — each marketing recipient
-  needs their own consent check and unsubscribe link.
+  needs their own consent check and unsubscribe link. A message sent to the
+  sandbox domain must have every copy on the sandbox domain too, or none:
+  sandbox mail is dropped one envelope at a time, so a real copy would be the
+  one part of a test send that really went out.
 - `subject` — required unless a template supplies it.
 - `html` / `text` — body content. Provide both when possible; `text` improves
   deliverability and accessibility.
