@@ -1,6 +1,6 @@
 ---
 name: emailbump
-description: Send transactional email through the Email Bump REST API — immediate and scheduled sends, file attachments, reusable templates, Liquid personalization, and account limits. Use when the user wants to send an email, receipt, alert, invoice, or notification programmatically via Email Bump.
+description: Send transactional email through the Email Bump REST API — immediate and scheduled sends, cc and bcc copies, file attachments, reusable templates, Liquid personalization, and account limits. Use when the user wants to send an email, receipt, alert, invoice, or notification programmatically via Email Bump.
 license: MIT
 ---
 
@@ -74,9 +74,21 @@ Body fields:
 
 - `from` (required) — display name + address. The domain must be a verified
   sending domain on the project.
-- `to` (required) — a single recipient address. One message, one recipient:
-  each send is metered and tracked on its own, so five people is five calls
-  (or a campaign). A one-element array is accepted; more than one is a 400.
+- `to` (required) — a single recipient address. One message, one `to`: each
+  send is metered and tracked on its own, so five *different* people is five
+  calls (or a campaign). A one-element array is accepted; more than one is a
+  400.
+- `cc` / `bcc` — copies of the **same** message, as one address or an array,
+  up to 50 between them. Everyone sees the `cc` addresses; nobody sees the
+  `bcc` ones. Each copy is a send of its own: its own envelope and provider
+  message id (so its bounces and opens are attributable to the person who got
+  it), its own row in the log, and its own line against the monthly allowance
+  — one `to` plus two copies is three emails. The response carries a `copies`
+  array, one entry per copy with an `id` you can pass to `GET /v1/emails/{id}`.
+  A copy to an address already hard-bounced or marked spam is dropped, named
+  in `warnings`, and left out of the `Cc` header; the message still goes to
+  `to`. Not accepted with `stream: "marketing"` — each marketing recipient
+  needs their own consent check and unsubscribe link.
 - `subject` — required unless a template supplies it.
 - `html` / `text` — body content. Provide both when possible; `text` improves
   deliverability and accessibility.
