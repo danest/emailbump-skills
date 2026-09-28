@@ -172,6 +172,26 @@ These names are exact. `list_joined` and `segment_entered` are refused with a
 400 that lists the valid ones — read it rather than guessing again. Full shapes:
 the Flows API reference below.
 
+### Stripe events
+
+When the project has connected its Stripe account (`GET /v1/integrations/stripe`
+says `connected: true`), an `event` trigger or a `wait_event` step can name
+Stripe's events — `{ "type": "event", "event_key": "stripe_payment_failed" }`:
+`stripe_payment_succeeded`, `stripe_payment_failed`, `stripe_trial_started`,
+`stripe_trial_ending`, `stripe_trial_converted`, `stripe_subscription_started`,
+`stripe_subscription_canceled`, `stripe_subscription_ended`,
+`stripe_plan_upgraded`, `stripe_plan_downgraded`, `stripe_refund`. The contact
+carries `stripe_plan`, `stripe_mrr`, `stripe_status`, and
+`{{ contact.stripe_unpaid_invoice_url }}` — the link a failed-payment email
+needs, since a flow renders from the contact rather than the event.
+
+Connecting is `POST /v1/integrations/stripe` with a restricted key (`rk_…`)
+that the human creates from the `key_url` in the GET response and pastes in.
+Never use a full secret key (`sk_…`) or one you found in a file, and never
+repeat the key back. `GET /v1/revenue` then says what each flow and campaign
+earned. Amounts are major units (58.0 is $58), and currencies are never added
+together.
+
 ## Enrol someone
 
 `POST /v1/flows/{id}/enroll` with `{"email": "..."}` or `{"contact_id": "..."}`
@@ -233,4 +253,5 @@ is the default, it tracks correctly, and turning it on is optional.
 
 - Flows API: https://emailbump.com/docs/flows-api.md
 - Automated flows guide: https://emailbump.com/docs/flows.md
+- Stripe events, attributes and revenue attribution: https://emailbump.com/docs/stripe.md
 - Sending domains: https://emailbump.com/docs/domains.md
