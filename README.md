@@ -49,7 +49,7 @@ our placeholder.
 
 | Skill | What your agent learns |
 | --- | --- |
-| [`emailbump`](./emailbump/SKILL.md) | Send transactional email through the REST API — immediate and scheduled sends, attachments, templates, personalization, and rate limits. |
+| [`emailbump`](./emailbump/SKILL.md) | Send transactional email through the REST API — immediate and scheduled sends, attachments, templates, personalization, rate limits, the sending review, and webhook endpoints for delivery events. |
 | [`emailbump-inbound`](./emailbump-inbound/SKILL.md) | Receive email: a catch-all address per project, the `email.received` webhook, reading messages and attachments, and forwarding one on. |
 | [`emailbump-flows`](./emailbump-flows/SKILL.md) | Build automated journeys — triggers, waits, branches — and send them from the right address. |
 | [`emailbump-audience`](./emailbump-audience/SKILL.md) | Manage contacts, lists, segments, consent, and behavioral events. |

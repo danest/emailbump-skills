@@ -1,6 +1,6 @@
 ---
 name: emailbump
-description: Send transactional email through the Email Bump REST API — immediate and scheduled sends, cc and bcc copies, file attachments, reusable templates, Liquid personalization, and account limits. Use when the user wants to send an email, receipt, alert, invoice, or notification programmatically via Email Bump.
+description: Send transactional email through the Email Bump REST API — immediate and scheduled sends, cc and bcc copies, file attachments, reusable templates, Liquid personalization, account limits, getting a project approved to send, and webhook endpoints for delivery, bounce and other events. Use when the user wants to send an email, receipt, alert, invoice, or notification programmatically via Email Bump, or to receive its events at their own URL.
 license: MIT
 ---
 
@@ -23,8 +23,8 @@ add `X-Project-Id: <uuid>` on these endpoints. Never print the key back.
 
 ## First call: `GET /v1/me`
 
-Before the first send, ask what the key can actually do. Four separate things
-refuse a send, and this names all of them at once:
+Before the first send, ask what the key can actually do. Several separate
+things refuse a send, and this names all of them at once:
 
 ```bash
 curl https://emailbump.com/api/v1/me -H "Authorization: Bearer $EMAILBUMP_API_KEY"
@@ -35,6 +35,7 @@ curl https://emailbump.com/api/v1/me -H "Authorization: Bearer $EMAILBUMP_API_KE
   "project": { "name": "Main", "object": "project" },
   "sending": {
     "ready": true,
+    "sending_review": { "status": "approved", "transactional_enabled": true },
     "email_confirmed": true,
     "verified_domains": ["mail.acme.com"],
     "default_from": "hello@mail.acme.com"
@@ -45,6 +46,13 @@ curl https://emailbump.com/api/v1/me -H "Authorization: Bearer $EMAILBUMP_API_KE
 
 - `sending.email_confirmed: false` — the account holder hasn't entered the code
   we emailed. Nothing sends until they do.
+- `sending.sending_review.status` isn't `approved` — a person at Email Bump
+  approves every project's business and use case before any of its mail goes
+  out. Submit it with `POST /v1/sending-review` (website, how recipients gave
+  permission, what triggers each message, where the evidence is) and read the
+  decision with `GET /v1/sending-review`. Transactional API/SMTP sending needs
+  `transactional_enabled: true` on top. Approval is not instant: tell the user,
+  don't retry sends. See https://emailbump.com/docs/sending-review-api.md
 - `verified_domains: []` — mail goes from the shared domain and looks like it.
   Add theirs with `POST /v1/domains`.
 - `footer.is_your_own_address: false` — the legally-required postal address in
@@ -167,6 +175,41 @@ Reusable MJML templates can be managed via `GET/POST /v1/templates` and
 `GET /v1/limits` returns the account's current sending limits and usage. Check
 it before bulk work and back off on HTTP 429.
 
+## Webhooks
+
+Get delivery, open, click, bounce, complaint, contact and received-mail events
+POSTed to the user's server instead of polling. Endpoints are a project
+resource, the same ones as Developers → Webhooks in the dashboard.
+
+```bash
+curl -X POST https://emailbump.com/api/v1/webhooks \
+  -H "Authorization: Bearer $EMAILBUMP_API_KEY" -H "Content-Type: application/json" \
+  -d '{"url": "https://example.com/hooks/emailbump", "event_types": ["email.bounced", "email.complained"]}'
+# or: emailbump webhooks:create --url https://example.com/hooks/emailbump --event email.bounced,email.complained
+```
+
+- The response's `webhook.secret` (`whsec_…`) is returned **once** and never
+  again. Hand it to the user or write it where their server reads it, right
+  away. Lost it? Delete the endpoint and create a new one.
+- Leave `event_types` out (or `[]`) for every event; `GET /v1/webhooks/event-types`
+  lists them. Unknown names and misspelled fields are a `400`.
+- The URL must be public: `localhost` and private addresses are refused. Each
+  event is a real POST, so confirm the URL with the user. One endpoint per URL
+  (`409`) and 20 per project: add events to an endpoint rather than more endpoints.
+- `PATCH /v1/webhooks/{id}` changes `url`, `event_types`, `description` or
+  `enabled` (`false` pauses it and drops anything queued for it).
+  `DELETE /v1/webhooks/{id}` removes it (`emailbump webhooks:delete <id> --yes`).
+  `GET /v1/webhooks` lists them, without secrets.
+- `POST /v1/webhooks/{id}/test` sends a signed `webhook.test` (10 a minute per
+  project; a turned-off endpoint is refused);
+  `GET /v1/webhooks/{id}/deliveries` shows status, the server's response code,
+  attempts and the last error. Read it before saying "the webhook never fired".
+- Receivers verify `Email-Bump-Signature: t=<ts>,v1=<hex>`: HMAC-SHA256 of
+  `{ts}.{raw body}` with the secret, compared in constant time, against the raw
+  bytes before any JSON parsing. Dedupe on the envelope `id`.
+
+Full guide: https://emailbump.com/docs/webhooks-api.md
+
 ## Guardrails
 
 - Emails cannot be unsent. Before sending to a real customer address, confirm
@@ -179,4 +222,5 @@ it before bulk work and back off on HTTP 429.
 
 - Transactional API guide: https://emailbump.com/docs/transactional-api.md
 - API overview (auth, errors, pagination): https://emailbump.com/docs/api-reference.md
-- Webhooks for delivery/open/click/bounce events: https://emailbump.com/docs/webhooks-api.md
+- Webhooks API (create, change, test endpoints; verify signatures): https://emailbump.com/docs/webhooks-api.md
+- Sending review API: https://emailbump.com/docs/sending-review-api.md

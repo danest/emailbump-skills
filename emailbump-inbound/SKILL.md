@@ -36,7 +36,18 @@ belongs on a subdomain like `inbox.theirdomain.com`.
 
 ## The email.received webhook
 
-Subscribe to `email.received` (Webhooks in the dashboard, or the webhooks API).
+Subscribe to `email.received` with the webhooks API, the CLI, or the dashboard
+(Developers → Webhooks):
+
+```bash
+curl -X POST https://emailbump.com/api/v1/webhooks \
+  -H "Authorization: Bearer $EMAILBUMP_API_KEY" -H "Content-Type: application/json" \
+  -d '{"url": "https://example.com/hooks/inbound", "event_types": ["email.received"]}'
+# or: emailbump webhooks:create --url https://example.com/hooks/inbound --event email.received
+```
+
+The response carries the endpoint's signing secret, once. Store it before
+doing anything else; nothing returns it again.
 The event carries metadata — sender, recipients, subject, verdicts, and the
 attachment list without the bytes. Fetch the body from the API when you need it.
 
