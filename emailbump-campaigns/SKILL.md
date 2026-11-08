@@ -63,7 +63,8 @@ Key fields:
 - Campaigns are created as **drafts** — nothing sends until the send call.
 
 Manage drafts with `GET /v1/campaigns` (filter by `status`: draft | scheduled |
-sending | sent | paused), `GET /v1/campaigns/{id}`, `PATCH /v1/campaigns/{id}`.
+sending | testing | sent | paused | canceled; `testing` is an A/B test waiting
+to pick its winner), `GET /v1/campaigns/{id}`, `PATCH /v1/campaigns/{id}`.
 
 `DELETE /v1/campaigns/{id}` removes a campaign **that never sent**, with its
 recipient rows and A/B variants. It is for clearing out drafts and mistakes.
